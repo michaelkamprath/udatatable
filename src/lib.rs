@@ -1,4 +1,4 @@
-//! # uDataTable
+//! # µDataTable
 //! An array of a generic type with a maximum capacity of rows. This crate is meant to be
 //! used with the `ufmt` crate in a `no_std` environment. All data is saved on the
 //! stack, so no heap allocations are required. Column names are defined for the row type
@@ -17,8 +17,7 @@
 //! ## Example
 //! ### Create a data table and appending rows
 //! The row type must implement the `Copy`, `Default`, `uDebug`, and `uDisplay` traits.
-//! ```
-//! use ufmt;
+//! ```rust
 //! use ufmt::{uDebug, uDisplay, uWrite, uwrite, uwriteln, Formatter};
 //! use udatatable::uDataTable;
 //!
@@ -79,6 +78,75 @@
 //! assert_eq!(table.get(2).unwrap().b, 4);
 //! assert_eq!(table.get(2).unwrap().c, 6);
 //!
+//! ```
+//! ### Display the data table
+//! The data table can be displayed with `ufmt` using the `uDisplay` or `uDebug` trait. A single
+//! column of the data table can be plotted with the `plot` method.
+//! ```rust
+//! use ufmt::{uDebug, uDisplay, uWrite, uwrite, uwriteln, Formatter};
+//! use ufmt_write;
+//! use core::convert::Infallible;
+//! use udatatable::uDataTable;
+//!
+//! // Define the row type
+//! #[derive(Copy, Clone, Default)]
+//! struct Row {
+//!     a: u32,
+//!     b: u32,
+//!     c: u32,
+//! }
+//!
+//! // Define the uDisplay and uDebug traits for the row type
+//! impl uDebug for Row {
+//!     fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
+//!     where
+//!         W: uWrite + ?Sized,
+//!     {
+//!         uwrite!(f, "Row {{ a: {}, b: {}, c: {} }}", self.a, self.b, self.c)
+//!     }
+//! }
+//!
+//! impl uDisplay for Row {
+//!     fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
+//!     where
+//!         W: uWrite + ?Sized,
+//!     {
+//!         // The uDisplay trait is meant to print the data in a csv format
+//!         uwrite!(f, "{}, {}, {}", self.a, self.b, self.c)
+//!     }
+//! }
+//!
+//! // Create the data table
+//! const N: usize = 10;
+//! const M: usize = 3;
+//! let mut table = uDataTable::<Row, N, M>::new(["a", "b", "c"]);
+//!
+//! // Append rows to the data table
+//! for i in 0..5 {
+//!     let row = Row {
+//!         a: i as u32,
+//!         b: i as u32 * 2,
+//!         c: i as u32 * 3,
+//!     };
+//!     if let Err(error) = table.append(row) {
+//!         // handle the error
+//!     }
+//! }
+//!
+//! // Display the data table
+//! let mut s = String::new();
+//! ufmt::uwrite!(&mut s, "{}", table).ok();
+//! assert_eq!(s, "\"a\",\"b\",\"c\"\n0, 0, 0\n1, 2, 3\n2, 4, 6\n3, 6, 9\n4, 8, 12\n");
+//!
+//! // Display the data table with uDebug
+//! let mut s = String::new();
+//! ufmt::uwrite!(&mut s, "{:?}", table).ok();
+//! assert_eq!(s, "uDataTable<[\"a\", \"b\", \"c\"], length: 5>");
+//!
+//! // graph the data table for value `a`
+//! let mut s = String::new();
+//! table.plot(&mut s, |row| row.a as i32);
+//! assert_eq!(s, "4 |    *\n  |   *.\n  |  *..\n  | *...\n0 |*....\n");
 //! ```
 #![no_std]
 use ufmt::{uDebug, uDisplay, uWrite, uwrite, uwriteln, Formatter};
@@ -169,13 +237,18 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
 
         // now we can calculate the scale factor
         let scale = 1.0 / (max - min) as f32;
-        const HEIGHT: i32 = 23;
+        const MAX_HEIGHT: i32 = 23;
+        let display_height = if (max - min) as i32 > MAX_HEIGHT {
+            MAX_HEIGHT
+        } else {
+            (max - min) as i32
+        };
         // now we can plot the data with rows on horizontal axis and values on vertical axis
-        for h in (0..HEIGHT+1).rev() {
-            if h == (HEIGHT as f32 * (0 - min) as f32 / (max - min) as f32) as i32 {
+        for h in (0..display_height+1).rev() {
+            if h == (display_height as f32 * (0 - min) as f32 / (max - min) as f32) as i32 {
                 Self::write_n_spaces(digits-1, f);
                 uwrite!(f, "0 |").ok();
-            } else if h == HEIGHT {
+            } else if h == display_height {
                 Self::write_n_spaces(digits-max_digits, f);
                 uwrite!(f, "{} |", max).ok();
             } else if h == 0 {
@@ -188,7 +261,7 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
             for r in 0..self.length() {
                 if let Result::Ok(row) = self.get(r) {
                     let value = value(row);
-                    let scaled_value = ((value - min) as f32 * scale * HEIGHT as f32) as i32;
+                    let scaled_value = ((value - min) as f32 * scale * display_height as f32) as i32;
                     if scaled_value == h {
                         uwrite!(f, "*").ok();
                     } else if scaled_value > h {
