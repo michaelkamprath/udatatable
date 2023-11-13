@@ -31,7 +31,7 @@ impl uDebug for Row {
         uwrite!(f, "Row {{ a: {}, b: {}, c: {} }}", self.a, self.b, self.c)
     }
 }
-//!
+
 impl uDisplay for Row {
     fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
     where
