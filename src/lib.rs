@@ -14,6 +14,15 @@
 //! requires a function that takes a reference to the row type and returns an `i32`. The
 //! `plot` method will plot the values returned by the function for each row in the data table.
 //!
+//! ## Features
+//! * `plot` - Enables the `plot` method. This was made an option feature to allow you to keep your
+//! code size small if you don't need the `plot` method.
+//! ## Usage
+//! Add the following to your `Cargo.toml` file to use the `uDataTable` crate.
+//! ```toml
+//! [dependencies]
+//! uDataTable = "0.1"
+//! ```
 //! ## Example
 //! ### Create a data table and appending rows
 //! The row type must implement the `Copy`, `Default`, `uDebug`, and `uDisplay` traits.
@@ -143,18 +152,28 @@
 //! ufmt::uwrite!(&mut s, "{:?}", table).ok();
 //! assert_eq!(s, "uDataTable<[\"a\", \"b\", \"c\"], length: 5>");
 //!
-//! // graph the data table for value `a`
-//! let mut s = String::new();
-//! table.plot(&mut s, |row| row.a as i32);
-//! assert_eq!(s, "4 |    *\n  |   *.\n  |  *..\n  | *...\n0 |*....\n");
+//! #[cfg(feature = "plot")]
+//! {
+//!     // graph the data table for value `a`
+//!     let mut s = String::new();
+//!     table.plot(&mut s, |row| row.a as i32);
+//!     assert_eq!(s, "4 |    *\n  |   *.\n  |  *..\n  | *...\n0 |*....\n");
+//! }
 //! ```
 #![no_std]
 use ufmt::{uDebug, uDisplay, uWrite, uwrite, uwriteln, Formatter};
 
-/// N rows of M columns.
-/// The debug and display implementations are meant to be used with the ufmt crate. The debug
-/// implementation will print the headers and the length of the table. The display implementation
-/// will print the table in a csv format.
+/// The `uDataTable` structure.
+/// # Generic Parameters
+/// * `T` - The row type. This type must implement the `Copy`, `Default`, `uDebug`, and `uDisplay` traits.
+/// * `N` - The maximum number of rows in the data table. This value must be greater than zero. Note that the
+/// data table will be stored on the stack, so the maximum number of rows should be kept small.
+/// * `M` - The number of columns in the data table, or more specifically, the number of column names that will be passed
+/// to the `new` method's `headers` parameter. This value must be greater than zero.
+/// # Fields
+/// * `headers` - An array of `M` strings that are the column names for the data table.
+/// * `data` - An array of `N` rows of type `T`.
+/// * `length` - The number of rows of data that has been inserted into the able. This value will be between 0..N.
 #[allow(non_camel_case_types)]
 pub struct uDataTable<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize> {
     headers: [&'a str; M],
@@ -166,6 +185,7 @@ pub struct uDataTable<'a, T: Copy + Default + uDebug + uDisplay, const N: usize,
 impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
     uDataTable<'a, T, N, M>
 {
+    /// Create a new data table with the specified headers passed in `headers`. There should be M headers in the passed `headers` array.
     pub fn new(headers: [&'a str; M]) -> Self {
         Self {
             headers,
@@ -174,6 +194,7 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
         }
     }
 
+    /// Get a reference to the row at the specified `index`. The `index`` must be less than the length of the table.
     pub fn get(&self, index: usize) -> Result<&T, uDataTableError> {
         if index < self.length {
             Result::Ok(&self.data[index])
@@ -182,6 +203,9 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
         }
     }
 
+    /// Append a row to the data table. The length of the table will be increased by one. The row
+    /// will be copied into the data table. The row must implement the Copy trait. If the length
+    /// of the table is equal to N, then the row will not be appended and an error will be returned.
     pub fn append(&mut self, row: T) -> Result<&T, uDataTableError> {
         if self.length < N {
             self.data[self.length] = row;
@@ -192,6 +216,7 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
         }
     }
 
+    /// Erase the data table. The length of the table will be set to zero.
     pub fn erase(&mut self) {
         self.length = 0;
         for i in 0..N {
@@ -199,14 +224,29 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
         }
     }
 
+    /// Get the length of the data table.
     pub fn length(&self) -> usize {
         self.length
     }
 
+    /// Get a reference to the headers of the data table.
     pub fn headers(&self) -> &[&'a str; M] {
         &self.headers
     }
 
+    /// Plots the data table. The data table will be plotted with rows on the horizontal axis and values
+    /// on the vertical axis. The plot method will scan thrugh all the rows in th data table
+    /// with the passed `value` function to determine the range of values to be plotted. The plot method will then
+    /// scale the values to fit in the display area. The plot method will display the range of values
+    /// on the vertical axis and the row index on the horizontal axis.
+    ///
+    /// # Arguments
+    ///
+    /// * `f` - The `ufmt::uWrite` object that the grph should be printed to.
+    /// * `value` - A function that gets called on each row in the data table to determine the value from that row to plot.
+    /// This function must take a reference to the row type and return an `i32`. The mapping of the desired
+    /// row value to the `i32` is for display purposes.
+    #[cfg(feature = "plot")]
     pub fn plot<W>(
         &self,
         f: &mut W,
@@ -292,6 +332,7 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
         count
     }
 
+    #[cfg(feature = "plot")]
     fn write_n_spaces<W>(n: u32,  f: &mut W)
     where
         W: uWrite + ?Sized,
@@ -342,10 +383,13 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize> 
     }
 }
 
+/// Errors that can occur when using the uDataTable structure.
 #[allow(non_camel_case_types)]
 #[derive(Copy, Clone, Debug)]
 pub enum uDataTableError {
+    /// The passed row index is out of bounds.
     RowIndexOutOfBounds,
+    /// The data table cannot grow any larger.
     CannotGrowTable,
 }
 
