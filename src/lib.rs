@@ -247,11 +247,8 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
     /// This function must take a reference to the row type and return an `i32`. The mapping of the desired
     /// row value to the `i32` is for display purposes.
     #[cfg(feature = "plot")]
-    pub fn plot<W>(
-        &self,
-        f: &mut W,
-        value: fn(&T) -> i32,
-    ) where
+    pub fn plot<W>(&self, f: &mut W, value: fn(&T) -> i32)
+    where
         W: uWrite + ?Sized,
     {
         // first we need to scan through the data to find the range of
@@ -284,15 +281,15 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
             (max - min) as i32
         };
         // now we can plot the data with rows on horizontal axis and values on vertical axis
-        for h in (0..display_height+1).rev() {
+        for h in (0..display_height + 1).rev() {
             if h == (display_height as f32 * (0 - min) as f32 / (max - min) as f32) as i32 {
-                Self::write_n_spaces(digits-1, f);
+                Self::write_n_spaces(digits - 1, f);
                 uwrite!(f, "0 |").ok();
             } else if h == display_height {
-                Self::write_n_spaces(digits-max_digits, f);
+                Self::write_n_spaces(digits - max_digits, f);
                 uwrite!(f, "{} |", max).ok();
             } else if h == 0 {
-                Self::write_n_spaces(digits-min_digits, f);
+                Self::write_n_spaces(digits - min_digits, f);
                 uwrite!(f, "{} |", min).ok();
             } else {
                 Self::write_n_spaces(digits, f);
@@ -301,7 +298,8 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
             for r in 0..self.length() {
                 if let Result::Ok(row) = self.get(r) {
                     let value = value(row);
-                    let scaled_value = ((value - min) as f32 * scale * display_height as f32) as i32;
+                    let scaled_value =
+                        ((value - min) as f32 * scale * display_height as f32) as i32;
                     if scaled_value == h {
                         uwrite!(f, "*").ok();
                     } else if scaled_value > h {
@@ -311,7 +309,7 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
                     }
                 }
             }
-            uwriteln!(f,"").ok();
+            uwriteln!(f, "").ok();
         }
     }
 
@@ -333,7 +331,7 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
     }
 
     #[cfg(feature = "plot")]
-    fn write_n_spaces<W>(n: u32,  f: &mut W)
+    fn write_n_spaces<W>(n: u32, f: &mut W)
     where
         W: uWrite + ?Sized,
     {
