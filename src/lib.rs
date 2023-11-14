@@ -1,31 +1,35 @@
-//! # µDataTable
-//! An array of a generic type with a maximum capacity of rows. This crate is meant to be
-//! used with the `ufmt` crate in a `no_std` environment. All data is saved on the
-//! stack, so no heap allocations are required. Column names are defined for the row type
+//! Data collection library for embedded systems.
+//!
+//! ## Overview
+//! This library enables the creation of an array of a generic type with a maximum capacity of rows.
+//! This crate is meant to be used with the `ufmt` crate in a `no_std` environment. It was specifically
+//! created for sensor data collection on small microcrontrollers, such as the Arduino.
+//!
+//! All data is saved on the stack, so no heap allocations are required. Column names are defined for the row type
 //! when the data table is created. The data table can be appended to up to the maximum number
 //! of rows defined at compile time. The data table contents can be erased to reset the length to zero.
 //!
-//! A `uDataTable` structure can be displayed with `ufmt` using the `uDisplay` or `uDebug` trait.
+//! A [`uDataTable`](crate::udatatable::uDataTable) structure can be displayed with `ufmt` using the `uDisplay` or `uDebug` trait.
 //! The intent is to use the `uDisplay` trait to print the data in a csv format and the `uDebug`
 //! trait to print the headers and the length of the table. You must define the `uDisplay` and
 //! `uDebug` traits for the row type if your row type is not a primitive type.
 //!
-//! The `uDataTable` structure can also be plotted with the `plot` method. The `plot` method
+//! The [`uDataTable`](crate::udatatable::uDataTable) structure can also be plotted with the optional `plot` feature. The [`plot`](crate::udatatable::plot<W>) method
 //! requires a function that takes a reference to the row type and returns an `i32`. The
 //! `plot` method will plot the values returned by the function for each row in the data table.
 //!
-//! ## Features
-//! * `plot` - Enables the `plot` method. This was made an option feature to allow you to keep your
-//! code size small if you don't need the `plot` method.
 //! ## Usage
-//! Add the following to your `Cargo.toml` file to use the `uDataTable` crate.
+//! Add the following to your `Cargo.toml` file to use the [`udatatable`](crate::udatatable) crate.
 //! ```toml
 //! [dependencies]
-//! uDataTable = "0.1"
+//! udatatable = "0.1"
 //! ```
+//! ### Features
+//! * `plot` - Enables the [`plot`](crate::udatatable::plot<W>) method. This was made an option feature to allow you to keep your
+//! code size small if you don't need the [`plot`](crate::udatatable::plot<W>) method.
 //! ## Example
-//! ### Create a data table and appending rows
-//! The row type must implement the `Copy`, `Default`, `uDebug`, and `uDisplay` traits.
+//! Create a data table, append rows, and display the contents. Note that the row type must
+//! implement the `Copy`, `Default`, `uDebug`, and `uDisplay` traits.
 //! ```rust
 //! use ufmt::{uDebug, uDisplay, uWrite, uwrite, uwriteln, Formatter};
 //! use udatatable::uDataTable;
@@ -87,61 +91,6 @@
 //! assert_eq!(table.get(2).unwrap().b, 4);
 //! assert_eq!(table.get(2).unwrap().c, 6);
 //!
-//! ```
-//! ### Display the data table
-//! The data table can be displayed with `ufmt` using the `uDisplay` or `uDebug` trait. A single
-//! column of the data table can be plotted with the `plot` method.
-//! ```rust
-//! use ufmt::{uDebug, uDisplay, uWrite, uwrite, uwriteln, Formatter};
-//! use ufmt_write;
-//! use core::convert::Infallible;
-//! use udatatable::uDataTable;
-//!
-//! // Define the row type
-//! #[derive(Copy, Clone, Default)]
-//! struct Row {
-//!     a: u32,
-//!     b: u32,
-//!     c: u32,
-//! }
-//!
-//! // Define the uDisplay and uDebug traits for the row type
-//! impl uDebug for Row {
-//!     fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
-//!     where
-//!         W: uWrite + ?Sized,
-//!     {
-//!         uwrite!(f, "Row {{ a: {}, b: {}, c: {} }}", self.a, self.b, self.c)
-//!     }
-//! }
-//!
-//! impl uDisplay for Row {
-//!     fn fmt<W>(&self, f: &mut Formatter<'_, W>) -> Result<(), W::Error>
-//!     where
-//!         W: uWrite + ?Sized,
-//!     {
-//!         // The uDisplay trait is meant to print the data in a csv format
-//!         uwrite!(f, "{}, {}, {}", self.a, self.b, self.c)
-//!     }
-//! }
-//!
-//! // Create the data table
-//! const N: usize = 10;
-//! const M: usize = 3;
-//! let mut table = uDataTable::<Row, N, M>::new(["a", "b", "c"]);
-//!
-//! // Append rows to the data table
-//! for i in 0..5 {
-//!     let row = Row {
-//!         a: i as u32,
-//!         b: i as u32 * 2,
-//!         c: i as u32 * 3,
-//!     };
-//!     if let Err(error) = table.append(row) {
-//!         // handle the error
-//!     }
-//! }
-//!
 //! // Display the data table
 //! let mut s = String::new();
 //! ufmt::uwrite!(&mut s, "{}", table).ok();
@@ -163,7 +112,7 @@
 #![no_std]
 use ufmt::{uDebug, uDisplay, uWrite, uwrite, uwriteln, Formatter};
 
-/// The `uDataTable` structure.
+/// The [`uDataTable`] structure.
 /// # Generic Parameters
 /// * `T` - The row type. This type must implement the `Copy`, `Default`, `uDebug`, and `uDisplay` traits.
 /// * `N` - The maximum number of rows in the data table. This value must be greater than zero. Note that the
