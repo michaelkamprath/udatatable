@@ -1,6 +1,6 @@
 [package]
 name = "udatatable"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Michael Kamprath <michael+crates@kamprath.net>"]
 description = "A library for creating data tables in an embedded no_std environment without an allocator."

@@ -196,7 +196,7 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
     /// * `value` - A function that gets called on each row in the data table to determine the value from that row to plot.
     /// This function must take a reference to the row type and return an `i32`. The mapping of the desired
     /// row value to the `i32` is for display purposes.
-    #[cfg(any(plot, doc))]
+    #[cfg(any(feature = "plot", doc))]
     pub fn plot<W>(&self, f: &mut W, value: fn(&T) -> i32)
     where
         W: uWrite + ?Sized,
