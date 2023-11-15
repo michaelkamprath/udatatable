@@ -6,8 +6,10 @@ authors = ["Michael Kamprath <michael+crates@kamprath.net>"]
 description = "A library for creating data tables in an embedded no_std environment without an allocator."
 readme = "README.md"
 keywords = ["no_std", "embedded", "avr", "arduino", "data", "table", "datatable",]
-categories = ["no-std", "embedded", "data"]
+categories = ["no-std", "embedded", "data-structures"]
 license = "MIT OR Apache-2.0"
+homepage = "https://github.com/michaelkamprath/udatatable"
+repository = "https://github.com/michaelkamprath/udatatable"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
