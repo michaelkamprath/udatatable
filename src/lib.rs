@@ -2,31 +2,33 @@
 //!
 //! ## Overview
 //! This library enables the creation of an array of a generic type with a maximum capacity of rows.
-//! This crate is meant to be used with the [`ufmt`](ufmt) crate in a `no_std` environment. It was specifically
+//! This crate is meant to be used with the [`ufmt`] crate in a `no_std` environment. It was specifically
 //! created for sensor data collection on small microcrontrollers, such as the Arduino.
 //!
 //! All data is saved on the stack, so no heap allocations are required. Column names are defined for the row type
 //! when the data table is created. The data table can be appended to up to the maximum number
 //! of rows defined at compile time. The data table contents can be erased to reset the length to zero.
 //!
-//! A [`uDataTable`](crate::udatatable::uDataTable) structure can be displayed with `ufmt` using the `uDisplay` or `uDebug` trait.
+//! A [`uDataTable`](crate::uDataTable) structure can be displayed with `ufmt` using the `uDisplay` or `uDebug` trait.
 //! The intent is to use the `uDisplay` trait to print the data in a csv format and the `uDebug`
 //! trait to print the headers and the length of the table. You must define the `uDisplay` and
 //! `uDebug` traits for the row type if your row type is not a primitive type.
 //!
-//! The [`uDataTable`](crate::udatatable::uDataTable) structure can also be plotted with the optional `plot` feature. The [`plot`](crate::udatatable::plot<W>) method
+//! The [`uDataTable`](crate::uDataTable) structure can also be plotted with the optional `plot` feature. The [`plot`](crate::uDataTable::plot) method
 //! requires a function that takes a reference to the row type and returns an `i32`. The
 //! `plot` method will plot the values returned by the function for each row in the data table.
 //!
+//! [`ufmt`]: https://crates.io/crates/ufmt
+//!
 //! ## Usage
-//! Add the following to your `Cargo.toml` file to use the [`udatatable`](crate::udatatable) crate.
+//! Add the following to your `Cargo.toml` file to use the `udatatable` crate.
 //! ```toml
 //! [dependencies]
 //! udatatable = "0.1"
 //! ```
 //! ### Features
-//! * `plot` - Enables the [`plot`](crate::udatatable::plot<W>) method. This was made an option feature to allow you to keep your
-//! code size small if you don't need the [`plot`](crate::udatatable::plot<W>) method.
+//! * `plot` - Enables the [`plot`](crate::uDataTable::plot) method. This was made an option feature to allow you to keep your
+//! code size small if you don't need the [`plot`](crate::uDataTable::plot) method.
 //! ## Example
 //! Create a data table, append rows, and display the contents. Note that the row type must
 //! implement the `Copy`, `Default`, `uDebug`, and `uDisplay` traits.
@@ -109,7 +111,6 @@
 //!     assert_eq!(s, "4 |    *\n  |   *.\n  |  *..\n  | *...\n0 |*....\n");
 //! }
 //! ```
-//! [ufmt]: https://crates.io/crates/ufmt
 //!
 #![no_std]
 use ufmt::{uDebug, uDisplay, uWrite, uwrite, uwriteln, Formatter};
@@ -197,7 +198,7 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
     /// * `value` - A function that gets called on each row in the data table to determine the value from that row to plot.
     /// This function must take a reference to the row type and return an `i32`. The mapping of the desired
     /// row value to the `i32` is for display purposes.
-    #[cfg(feature = "plot")]
+    #[cfg(any(plot, doc))]
     pub fn plot<W>(&self, f: &mut W, value: fn(&T) -> i32)
     where
         W: uWrite + ?Sized,
