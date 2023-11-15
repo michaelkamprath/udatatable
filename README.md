@@ -1,4 +1,5 @@
 # µDataTable
+[![Crates.io](https://img.shields.io/crates/v/udatatable.svg)](https://crates.io/crates/udatatable)
 
 <!-- cargo-sync-readme start -->
 
