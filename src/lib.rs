@@ -1,8 +1,8 @@
-//! Data collection library for embedded systems.
+//! Data collection Rust library for embedded systems, such as the Arduino.
 //!
 //! ## Overview
 //! This library enables the creation of an array of a generic type with a maximum capacity of rows.
-//! This crate is meant to be used with the `ufmt` crate in a `no_std` environment. It was specifically
+//! This crate is meant to be used with the [`ufmt`](ufmt) crate in a `no_std` environment. It was specifically
 //! created for sensor data collection on small microcrontrollers, such as the Arduino.
 //!
 //! All data is saved on the stack, so no heap allocations are required. Column names are defined for the row type
@@ -109,6 +109,8 @@
 //!     assert_eq!(s, "4 |    *\n  |   *.\n  |  *..\n  | *...\n0 |*....\n");
 //! }
 //! ```
+//! [ufmt]: https://crates.io/crates/ufmt
+//! 
 #![no_std]
 use ufmt::{uDebug, uDisplay, uWrite, uwrite, uwriteln, Formatter};
 
