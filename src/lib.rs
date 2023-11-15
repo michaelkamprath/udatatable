@@ -2,7 +2,7 @@
 //!
 //! ## Overview
 //! This library enables the creation of an array of a generic type with a maximum capacity of rows.
-//! This crate is meant to be used with the [`ufmt`] crate in a `no_std` environment. It was specifically
+//! This crate is meant to be used with the `ufmt` crate in a `no_std` environment. It was specifically
 //! created for sensor data collection on small microcrontrollers, such as the Arduino.
 //!
 //! All data is saved on the stack, so no heap allocations are required. Column names are defined for the row type
@@ -17,8 +17,6 @@
 //! The [`uDataTable`](crate::uDataTable) structure can also be plotted with the optional `plot` feature. The [`plot`](crate::uDataTable::plot) method
 //! requires a function that takes a reference to the row type and returns an `i32`. The
 //! `plot` method will plot the values returned by the function for each row in the data table.
-//!
-//! [`ufmt`]: https://crates.io/crates/ufmt
 //!
 //! ## Usage
 //! Add the following to your `Cargo.toml` file to use the `udatatable` crate.
