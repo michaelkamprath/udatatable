@@ -110,7 +110,7 @@
 //! }
 //! ```
 //! [ufmt]: https://crates.io/crates/ufmt
-//! 
+//!
 #![no_std]
 use ufmt::{uDebug, uDisplay, uWrite, uwrite, uwriteln, Formatter};
 
