@@ -263,6 +263,7 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
         }
     }
 
+    #[cfg(any(feature = "plot", doc))]
     fn count_digits(value: i32) -> u32 {
         let mut n = value;
         let mut count = 0;
@@ -280,7 +281,7 @@ impl<'a, T: Copy + Default + uDebug + uDisplay, const N: usize, const M: usize>
         count
     }
 
-    #[cfg(feature = "plot")]
+    #[cfg(any(feature = "plot", doc))]
     fn write_n_spaces<W>(n: u32, f: &mut W)
     where
         W: uWrite + ?Sized,
